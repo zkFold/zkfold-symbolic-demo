@@ -21,5 +21,11 @@ cradle:
     - path: "./bench-cpu-mem/Bench/Scripts.hs"
       component: "zkfold-cardano:exe:bench-cpu-mem"
 
-    - path: "./redeemer-from-context/Main.hs"
-      component: "zkfold-cardano:exe:redeemer-from-context"
+    - path: "./create-contract-transaction/Main.hs"
+      component: "zkfold-cardano:exe:create-contract-transaction"
+
+    - path: "./create-transfer-transaction/Main.hs"
+      component: "zkfold-cardano:exe:create-transfer-transaction"
+
+    - path: "./create-init-transaction/Main.hs"
+      component: "zkfold-cardano:exe:create-init-transaction"

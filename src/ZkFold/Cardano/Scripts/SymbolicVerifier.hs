@@ -1,18 +1,14 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
-module ZkFold.Cardano.SymbolicVerifier where
+module ZkFold.Cardano.Scripts.SymbolicVerifier where
 
-import           GHC.ByteOrder                            (ByteOrder (..))
 import           PlutusLedgerApi.V3                       (ScriptContext (..), TxInfo (..))
 import           PlutusLedgerApi.V3.Contexts              (TxInInfo (..))
-import           PlutusTx                                 (toBuiltinData)
-import           PlutusTx.Builtins                        (byteStringToInteger, serialiseData, blake2b_224)
 import           PlutusTx.Prelude                         (Bool (..), ($), (.), (<$>))
 
-import           ZkFold.Base.Algebra.Basic.Class          (AdditiveGroup (..))
 import           ZkFold.Base.Protocol.NonInteractiveProof (NonInteractiveProof (..))
 import           ZkFold.Cardano.Plonk                     (PlonkPlutus)
-import           ZkFold.Cardano.Plonk.OnChain             (InputBytes (..), ProofBytes, SetupBytes, toF)
+import           ZkFold.Cardano.Plonk.OnChain             (ProofBytes, SetupBytes, dataToBlake, toInput)
 
 -- | Plutus script for verifying a ZkFold Symbolic smart contract on the current transaction.
 --
@@ -33,4 +29,4 @@ symbolicVerifier contract proof ctx =
         range = txInfoValidRange info
 
         -- Computing public input from the transaction data
-        input = InputBytes . negate . toF . byteStringToInteger BigEndian . blake2b_224 . serialiseData . toBuiltinData $ (ins, refs, outs, range)
+        input = toInput . dataToBlake $ (ins, refs, outs, range)

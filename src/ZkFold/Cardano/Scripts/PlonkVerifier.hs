@@ -1,18 +1,16 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
-module ZkFold.Cardano.PlonkVerifier where
+module ZkFold.Cardano.Scripts.PlonkVerifier where
 
-import           GHC.ByteOrder                            (ByteOrder (..))
 import           PlutusLedgerApi.V1.Value                 (Value (..))
-import           PlutusLedgerApi.V3                       (ScriptContext(..), TokenName (..), TxInfo (..))
+import           PlutusLedgerApi.V3                       (ScriptContext (..), TokenName (..), TxInfo (..))
 import           PlutusLedgerApi.V3.Contexts              (ownCurrencySymbol)
 import qualified PlutusTx.AssocMap                        as AssocMap
-import           PlutusTx.Builtins                        (byteStringToInteger)
-import           PlutusTx.Prelude                         (Bool (..), Maybe (..), Ord (..), ($), (.), (||))
+import           PlutusTx.Prelude                         (Bool (..), Maybe (..), Ord (..), ($), (||))
 
 import           ZkFold.Base.Protocol.NonInteractiveProof (NonInteractiveProof (..))
 import           ZkFold.Cardano.Plonk                     (PlonkPlutus)
-import           ZkFold.Cardano.Plonk.OnChain             (InputBytes (..), ProofBytes, SetupBytes, toF)
+import           ZkFold.Cardano.Plonk.OnChain             (ProofBytes, SetupBytes, toInput)
 
 -- | Plutus script (minting policy) for verifying computations on-chain.
 --
@@ -23,14 +21,14 @@ plonkVerifier :: SetupBytes -> ProofBytes -> ScriptContext -> Bool
 plonkVerifier computation proof ctx =
     conditionBurning || conditionVerifying
     where
-        info               = scriptContextTxInfo ctx
+        mints              = getValue $ txInfoMint $ scriptContextTxInfo ctx
 
         -- Finding own tokens
-        Just m             = AssocMap.lookup (ownCurrencySymbol ctx) (getValue $ txInfoMint info)
+        Just m             = AssocMap.lookup (ownCurrencySymbol ctx) mints
         [(TokenName t, n)] = AssocMap.toList m
-        
+
         -- Computing public input from the token name
-        input = InputBytes . toF . byteStringToInteger BigEndian $ t
+        input              = toInput t
 
         -- Burning already minted tokens
         conditionBurning   = n < 0

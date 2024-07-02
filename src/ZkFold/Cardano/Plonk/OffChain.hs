@@ -4,24 +4,26 @@
 
 module ZkFold.Cardano.Plonk.OffChain where
 
-import           Data.Aeson                               (FromJSON, ToJSON)
-import qualified Data.Vector                              as V
-import           GHC.ByteOrder                            (ByteOrder (..))
-import           GHC.Generics                             (Generic)
-import           GHC.Natural                              (naturalToInteger)
+import           Data.Aeson                                (FromJSON, ToJSON)
+import qualified Data.Vector                               as V
+import           GHC.ByteOrder                             (ByteOrder (..))
+import           GHC.Generics                              (Generic)
+import           GHC.Natural                               (naturalToInteger)
 import           PlutusTx.Builtins
-import           PlutusTx.Prelude                         (Semigroup (..), ($), (.))
-import           Prelude                                  (Show)
-import qualified Prelude                                  as Haskell
+import           PlutusTx.Prelude                          (Semigroup (..), ($), (.))
+import           Prelude                                   (Show)
+import qualified Prelude                                   as Haskell
 
 import           ZkFold.Base.Algebra.Basic.Class
-import           ZkFold.Base.Algebra.Basic.Field          (Ext2 (..), Zp, fromZp, toZp)
-import           ZkFold.Base.Algebra.Basic.Number         (KnownNat, value)
-import           ZkFold.Base.Algebra.EllipticCurve.Class  (Point (..))
-import qualified ZkFold.Base.Protocol.ARK.Plonk           as Plonk
-import           ZkFold.Base.Protocol.ARK.Plonk           hiding (F, G1, PlonkProverSecret)
-import           ZkFold.Base.Protocol.NonInteractiveProof (FromTranscript (..), NonInteractiveProof (..), ToTranscript (..))
-import           ZkFold.Cardano.Plonk.OnChain             (F (..), G1, InputBytes (..), ProofBytes (..), SetupBytes (..))
+import           ZkFold.Base.Algebra.Basic.Field           (Ext2 (..), Zp, fromZp, toZp)
+import           ZkFold.Base.Algebra.Basic.Number          (KnownNat, value)
+import           ZkFold.Base.Algebra.EllipticCurve.Class   (Point (..))
+import qualified ZkFold.Base.Protocol.ARK.Plonk            as Plonk
+import           ZkFold.Base.Protocol.ARK.Plonk            hiding (F, G1, PlonkProverSecret)
+import           ZkFold.Base.Protocol.NonInteractiveProof  (FromTranscript (..), NonInteractiveProof (..), ToTranscript (..))
+import           ZkFold.Cardano.Plonk.OnChain.BLS12_381.F  (F (..))
+import           ZkFold.Cardano.Plonk.OnChain.BLS12_381.G1 (G1)
+import           ZkFold.Cardano.Plonk.OnChain.Data         (InputBytes (..), ProofBytes (..), SetupBytes (..))
 
 --------------- Transform Plonk Base to Plonk BuiltinByteString ----------------
 
@@ -29,10 +31,11 @@ type PlonkN n = Plonk n 1 BuiltinByteString
 
 mkSetup :: SetupVerify (PlonkN n) -> SetupBytes
 mkSetup (PlonkSetupParamsVerify {..}, PlonkCircuitCommitments {..}) = SetupBytes
-  { pow -- value @n == 2^pow
+  { n
+  , pow -- value @n == 2^pow
   , g0'   = convertG1 g0
-  , h0'   = convertG2 h0 -- todo: bench generate on off-chain in setup vs gengerate on on-chain in verify
-  , h1'   = convertG2 h1 -- todo: bench generate on off-chain in setup vs gengerate on on-chain in verify
+  , h0'   = convertG2 h0 -- todo: bench generate on off-chain in setup vs generate on on-chain in verify
+  , h1'   = convertG2 h1 -- todo: bench generate on off-chain in setup vs generate on on-chain in verify
   , omega = F $ convertF omega
   , k1    = F $ convertF k1
   , k2    = F $ convertF k2
